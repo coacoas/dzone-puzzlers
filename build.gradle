@@ -1,0 +1,7 @@
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+
+tasks.withType(ScalaCompile) {
+      scalaCompileOptions.useAnt = false
+}
+
