@@ -5,3 +5,10 @@ tasks.withType(ScalaCompile) {
       scalaCompileOptions.useAnt = false
 }
 
+repositories { 
+  mavenCentral()
+}
+
+dependencies { 
+  compile 'org.scala-lang:scala-library:2.10.3'
+}
