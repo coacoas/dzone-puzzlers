@@ -12,4 +12,7 @@ repositories {
 
 dependencies { 
   compile 'org.scala-lang:scala-library:2.10.3'
+  testCompile 'org.scalatest:scalatest_2.10:2.0.RC1'
+  testCompile 'org.scalacheck:scalacheck_2.10:1.+'
+  testCompile 'junit:junit:4.11'
 }
