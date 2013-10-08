@@ -57,15 +57,4 @@ object Board {
       width = width,
       height = height)
   }
-
-  def traverse(board: Board): Stream[Board] = {
-    def from(initial: Stream[Board], explored: Set[Board]): Stream[Board] = {
-      val (nextInitial, nextExplored) = initial.foldLeft((Stream.empty[Board], explored)) {
-        case ((acc, exploredPlus), e) =>
-          (acc #::: e.subBoardsSkipVisited(exploredPlus), exploredPlus + e)
-      }
-      initial #::: from(nextInitial, nextExplored)
-    }
-    from(Stream(board), Set())
-  }
 }

@@ -104,11 +104,11 @@ class BoardTest extends FunSuite with Matchers {
     equal (Stream(Board(matrix, Position(0, 0), 1, 1)))
   }
   
-//  test("A 2x2 board with all children has nine elements") { 
-//	val matrix = Vector(Vector(1,1),Vector(1,1))
-//	val b = Board(matrix)
-//    b.traverse.force.length should equal (9)
-//  }
+  ignore("A 2x2 board with all children has nine elements") { 
+	val matrix = Vector(Vector(1,1),Vector(1,1))
+	val b = Board(matrix)
+    b.traverse.force.length should equal (9)
+  }
   
   test("Immediate sub-boards returns the correct values") { 
     val boards = Board(x3).immediateSubBoards
