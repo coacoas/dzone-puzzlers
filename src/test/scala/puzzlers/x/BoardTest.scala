@@ -47,10 +47,6 @@ class BoardTest extends FunSuite with Matchers {
     Board(x2).isSquare should be (true)
   }
   
-  test("A two-by-two's center board is empty") { 
-    Board(x2).centerBoard.isEmpty should be (true)
-  }
-  
   test("An empty board is not an X") { 
     Board(emptyBoard).isX should be (false)
   }
@@ -92,8 +88,9 @@ class BoardTest extends FunSuite with Matchers {
   }
 
   test("2 x 2 board has four immediate children") { 
-    Board(Vector(Vector(0,1), Vector(1,0))).immediateSubBoards.map(b => (b.width, b.height)) should 
-      equal (Stream((1,2),(2,1),(1,2),(2,1)))
+    Board(Vector(Vector(0,1), Vector(1,0))).immediateSubBoards.collect { case b: LargeBoard => 
+      (b.width, b.height)
+    } should equal (Stream((1,2),(2,1),(1,2),(2,1)))
   }
   
   test("Filtering already visited children") {
