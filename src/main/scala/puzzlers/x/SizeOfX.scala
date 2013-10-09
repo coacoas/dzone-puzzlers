@@ -1,5 +1,7 @@
 package puzzlers.x
 
+import scala.annotation.tailrec
+
 case class Position(val x: Int, val y: Int) {
   def +(other: Position) = Position(x + other.x, y + other.y)
   def -(other: Position) = Position(x - other.x, y - other.y)
@@ -9,11 +11,12 @@ sealed trait Matrix {
   def isValid: Boolean
   def isSquare: Boolean
   def isX: Boolean
-  def traverse: Seq[Matrix]
+  def traverse: Stream[Matrix]
   def centerBoard: Matrix
   def immediateSubBoards: Seq[Matrix]
   def legalImmediateSubBoards: Seq[Matrix] = immediateSubBoards.filter(_.isValid)
   def subBoardsSkipVisited(visited: Set[Matrix]): Seq[Matrix] = legalImmediateSubBoards.filterNot(visited)
+  def largestX: Option[SquareMatrix] = traverse.collect({ case square: SquareMatrix => square}).find(_.isX)
 }
 
 case object EmptyMatrix extends Matrix {
@@ -21,7 +24,7 @@ case object EmptyMatrix extends Matrix {
   override val isSquare = true
   override val isX = false
   override val centerBoard = EmptyMatrix
-  override val traverse = Nil
+  override val traverse = Stream.empty
   override val immediateSubBoards = Vector.empty
 }
 
@@ -40,7 +43,7 @@ case class SingleElementMatrix(matrix: Vector[Vector[Int]], position: Position) 
   override val isSquare = true
   override val isX = valueAt(position) == Some(1)
   override val centerBoard = EmptyMatrix
-  override val traverse = Nil
+  override val traverse = Stream.empty
   override val immediateSubBoards = Vector.empty
 }
 
@@ -75,22 +78,20 @@ abstract class LargeBoard(matrix: Vector[Vector[Int]],
     Vector(subBoard(upperLeft, width - 1, height),
       subBoard(upperLeft, width, height - 1),
       subBoard(upperLeft + Position(1, 0), width - 1, height),
-      subBoard(upperLeft + Position(0, 1), width, height - 1)) ~ println
+      subBoard(upperLeft + Position(0, 1), width, height - 1))
 
   def legalSubBoards = immediateSubBoards.filter(_.isValid)
 
-  def traverse: Vector[Matrix] = {
-    def from(initial: Vector[Matrix], explored: Set[Matrix]): Vector[Matrix] = {
-      val (nextInitial, nextExplored) = initial.foldLeft((Vector[Matrix](), explored)) {
-        case ((acc, exploredPlus), e) =>
-          println(exploredPlus)
-          println(e)
-          println("---------------------------")
-          (acc ++ (e.immediateSubBoards.filterNot(exploredPlus)), exploredPlus + e)
+  def traverse: Stream[Matrix] = {
+    def from(initial: Stream[Matrix], explored: Set[Matrix]): Stream[Matrix] = initial match { 
+      case m #:: xs => {
+        val subs = m.subBoardsSkipVisited(explored)
+        // println(s"${m} => ${subs}")
+        m #:: from(xs #::: subs.toStream, explored ++ subs)
       }
-      initial ++ from(nextInitial, nextExplored)
+      case _ => Stream.empty
     }
-    from(Vector(this), Set())
+    from(Stream(this), Set())
   }
 }
 

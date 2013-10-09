@@ -107,7 +107,7 @@ class BoardTest extends FunSuite with Matchers {
     equal (Vector(Matrix(matrix, Position(0, 0), 1, 1)))
   }
   
-  ignore("A 2x2 board with all children has nine elements") { 
+  test("A 2x2 board with all children has nine elements") { 
 	val matrix = Vector(Vector(1,1),Vector(1,1))
 	val b = Matrix(matrix)
     b.traverse.length should equal (9)
@@ -116,5 +116,25 @@ class BoardTest extends FunSuite with Matchers {
   test("Immediate sub-boards returns the correct values") { 
     val boards = Matrix(x3).immediateSubBoards
     boards.length should equal (4)
+  }
+  
+  test("Find the largest X") {
+    val m = Vector(
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,1,0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(1,0,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
+        Vector(0,1,0,0,0,0,0,1,1,0,1,0,1,0,1,0,1,0),
+        Vector(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0))
+    
+    val largestX = Matrix(m).largestX
+    largestX.map(_.size) should equal(Some(5))
   }
 }
