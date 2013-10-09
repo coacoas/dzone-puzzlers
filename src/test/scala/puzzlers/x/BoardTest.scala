@@ -123,10 +123,6 @@ class BoardTest extends FunSuite with Matchers {
         Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
         Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
         Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
-        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
-        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
-        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
-        Vector(0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0),
         Vector(0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0),
         Vector(0,1,0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0),
         Vector(1,0,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0),
@@ -136,5 +132,20 @@ class BoardTest extends FunSuite with Matchers {
     
     val largestX = Matrix(m).largestX
     largestX.map(_.size) should equal(Some(5))
+  }
+  
+  test("All one X") { 
+    val m = Vector(
+        Vector(1,0,1),
+        Vector(0,1,0),
+        Vector(1,0,1))
+    Matrix(m).largestX should equal(Some(Matrix(m).asInstanceOf[SquareMatrix]))
+  }
+  
+  test("Has no largest X") { 
+    val m = Vector(
+        Vector(0,1,0),
+        Vector(1,0,1))
+    Matrix(m).largestX should be (None)
   }
 }

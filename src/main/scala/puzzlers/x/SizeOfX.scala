@@ -96,13 +96,6 @@ abstract class LargeBoard(matrix: Vector[Vector[Int]],
 }
 
 object Matrix {
-  implicit class AnyWithSideEffects[T](val v: T) extends AnyVal {
-    def ~(f: T => Unit): T = {
-      f(v)
-      v
-    }
-  }
-  
   def apply(board: Vector[Vector[Int]], start: Position, width: Int, height: Int): Matrix =
     (if (width == 0 || height == 0) EmptyMatrix
     else if (width == 1 && height == 1) SingleElementMatrix(board, start)
