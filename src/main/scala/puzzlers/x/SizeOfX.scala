@@ -12,20 +12,21 @@ sealed trait Matrix {
   def isSquare: Boolean
   def isX: Boolean
   def traverse: Stream[Matrix]
-  def centerBoard: Matrix
-  def immediateSubBoards: Seq[Matrix]
-  def legalImmediateSubBoards: Seq[Matrix] = immediateSubBoards.filter(_.isValid)
-  def subBoardsSkipVisited(visited: Set[Matrix]): Seq[Matrix] = legalImmediateSubBoards.filterNot(visited)
-  def largestX: Option[SquareMatrix] = traverse.collect({ case square: SquareMatrix => square}).find(_.isX)
+  def immediateSubBoards: Stream[Matrix]
+  def legalImmediateSubBoards: Stream[Matrix] = immediateSubBoards.filter(_.isValid)
+  def subBoardsSkipVisited(visited: Set[Matrix]): Stream[Matrix] = 
+    legalImmediateSubBoards.filterNot(visited)
+  def largestX: Option[SquareMatrix] = traverse.collect({ 
+    case s: SquareMatrix => s
+  }).find(_.isX)
 }
 
 case object EmptyMatrix extends Matrix {
   override val isValid = false
   override val isSquare = true
   override val isX = false
-  override val centerBoard = EmptyMatrix
   override val traverse = Stream.empty
-  override val immediateSubBoards = Vector.empty
+  override val immediateSubBoards = Stream.empty
 }
 
 abstract class BaseMatrix(matrix: Vector[Vector[Int]]) {
@@ -42,15 +43,19 @@ case class SingleElementMatrix(matrix: Vector[Vector[Int]], position: Position) 
   override def isValid = valueAt(position).isDefined
   override val isSquare = true
   override val isX = valueAt(position) == Some(1)
-  override val centerBoard = EmptyMatrix
   override val traverse = Stream.empty
-  override val immediateSubBoards = Vector.empty
+  override val immediateSubBoards = Stream.empty
 }
 
 case class SquareMatrix(matrix: Vector[Vector[Int]], upperLeft: Position, size: Int) extends LargeBoard(matrix, upperLeft, size, size) {
+  def bottomRight = Position(upperLeft.x + width - 1, upperLeft.y + height - 1)
+  def upperRight = Position(bottomRight.x, upperLeft.y)
+  def bottomLeft = Position(upperLeft.x, bottomRight.y)
+  def corners = Vector(upperLeft, upperRight, bottomLeft, bottomRight).map(valueAt _)
+  def centerBoard = Matrix(matrix, upperLeft + Position(1, 1), size - 2, size - 2)
+
   override def isValid = (upperLeft.y + size) < matrix.length
   override val isSquare = true
-  override def centerBoard = Matrix(matrix, upperLeft + Position(1, 1), size - 2, size - 2)
   override def isX = corners.forall(_ == Some(1)) && centerBoard.isX
 }
 
@@ -58,35 +63,23 @@ case class NonSquareBoard(matrix: Vector[Vector[Int]], upperLeft: Position, over
   override def isValid = (upperLeft.y + height) <= matrix.length && (upperLeft.x + width) <= matrix.head.length
   override val isSquare = false
   override val isX = false
-  override def centerBoard = Matrix(matrix, upperLeft + Position(1, 1), width - 2, height - 2)
 }
 
 abstract class LargeBoard(matrix: Vector[Vector[Int]],
   upperLeft: Position,
   val width: Int,
   val height: Int) extends BaseMatrix(matrix) with Matrix {
-  def bottomRight = Position(upperLeft.x + width - 1, upperLeft.y + height - 1)
-  def upperRight = Position(bottomRight.x, upperLeft.y)
-  def bottomLeft = Position(upperLeft.x, bottomRight.y)
 
-  def corners = Vector(upperLeft, upperRight, bottomLeft, bottomRight).map(valueAt _)
-
-  def subBoard(newUpperLeft: Position, w: Int, h: Int) =
-    Matrix(matrix, newUpperLeft, w, h)
-
-  def immediateSubBoards: Vector[Matrix] =
-    Vector(subBoard(upperLeft, width - 1, height),
-      subBoard(upperLeft, width, height - 1),
-      subBoard(upperLeft + Position(1, 0), width - 1, height),
-      subBoard(upperLeft + Position(0, 1), width, height - 1))
-
-  def legalSubBoards = immediateSubBoards.filter(_.isValid)
+  override def immediateSubBoards =
+    Matrix(matrix, upperLeft, width - 1, height) #:: 
+      Matrix(matrix, upperLeft, width, height - 1) #:: 
+      Matrix(matrix, upperLeft + Position(1, 0), width - 1, height) #:: 
+      Matrix(matrix, upperLeft + Position(0, 1), width, height - 1) #:: Stream.empty
 
   def traverse: Stream[Matrix] = {
     def from(initial: Stream[Matrix], explored: Set[Matrix]): Stream[Matrix] = initial match { 
       case m #:: xs => {
         val subs = m.subBoardsSkipVisited(explored)
-        // println(s"${m} => ${subs}")
         m #:: from(xs #::: subs.toStream, explored ++ subs)
       }
       case _ => Stream.empty
