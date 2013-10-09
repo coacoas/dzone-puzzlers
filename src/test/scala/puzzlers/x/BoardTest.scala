@@ -72,29 +72,29 @@ class BoardTest extends FunSuite with Matchers {
   }
   
   test("Empty boards should have no immediate children") { 
-    Matrix(emptyBoard).immediateSubBoards should equal (Stream.empty)
+    Matrix(emptyBoard).immediateSubMatrices should equal (Stream.empty)
   }
   
   test("One-element boards have no immeidate children") { 
-    Matrix(board0).immediateSubBoards.length should equal (0)
+    Matrix(board0).immediateSubMatrices.length should equal (0)
   }
   
   test("2 x 1 board has two immediate children") { 
     val m = Vector(Vector(1,1))
-    Matrix(m).legalImmediateSubBoards.toSet should equal (Set(
+    Matrix(m).legalImmediateSubMatrices.toSet should equal (Set(
         SingleElementMatrix(m, Position(1,0)), 
         SingleElementMatrix(m, Position(0,0))))
   }
   
   test("1 x 2 board has two immediate children") { 
     val m = Vector(Vector(1), Vector(1))
-    Matrix(m).legalImmediateSubBoards.toSet should equal (Set(
+    Matrix(m).legalImmediateSubMatrices.toSet should equal (Set(
         SingleElementMatrix(m, Position(0,0)),
         SingleElementMatrix(m, Position(0,1))))
   }
 
   test("2 x 2 board has four immediate children") { 
-    Matrix(Vector(Vector(0,1), Vector(1,0))).legalImmediateSubBoards.collect { case b: LargeBoard => 
+    Matrix(Vector(Vector(0,1), Vector(1,0))).legalImmediateSubMatrices.collect { case b: LargeMatrix => 
       (b.width, b.height)
     } should equal (Vector((1,2),(2,1),(1,2),(2,1)))
   }
@@ -103,7 +103,7 @@ class BoardTest extends FunSuite with Matchers {
     val matrix = Vector(Vector(1,1))
     val b = Matrix(matrix)
     
-    b.subBoardsSkipVisited(Set(Matrix(matrix, Position(1,0), 1, 1))) should 
+    b.subMatricesSkipVisited(Set(Matrix(matrix, Position(1,0), 1, 1))) should 
     equal (Vector(Matrix(matrix, Position(0, 0), 1, 1)))
   }
   
@@ -114,7 +114,7 @@ class BoardTest extends FunSuite with Matchers {
   }
   
   test("Immediate sub-boards returns the correct values") { 
-    val boards = Matrix(x3).immediateSubBoards
+    val boards = Matrix(x3).immediateSubMatrices
     boards.length should equal (4)
   }
   
@@ -131,15 +131,17 @@ class BoardTest extends FunSuite with Matchers {
         Vector(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0))
     
     val largestX = Matrix(m).largestX
-    largestX.map(_.size) should equal(Some(5))
+    Matrix(m).largestX should equal (Some(SquareMatrix(m, Position(2, 2), 5)))
   }
   
   test("All one X") { 
     val m = Vector(
-        Vector(1,0,1),
-        Vector(0,1,0),
-        Vector(1,0,1))
-    Matrix(m).largestX should equal(Some(Matrix(m).asInstanceOf[SquareMatrix]))
+        Vector(1,0,1,0,1),
+        Vector(0,1,1,1,0),
+        Vector(1,1,1,1,1),
+        Vector(0,1,1,1,0),
+        Vector(1,0,1,0,1))
+    Matrix(m).largestX should equal(Some(SquareMatrix(m, Position(0,0),5)))
   }
   
   test("Has no largest X") { 
