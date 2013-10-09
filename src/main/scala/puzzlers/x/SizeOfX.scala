@@ -5,98 +5,113 @@ case class Position(val x: Int, val y: Int) {
   def -(other: Position) = Position(x - other.x, y - other.y)
 }
 
-sealed trait Board { 
+sealed trait Matrix {
+  def isValid: Boolean
   def isSquare: Boolean
   def isX: Boolean
-  def traverse: Stream[Board]
-  def centerBoard: Board
-  def immediateSubBoards: Stream[Board]
-  def subBoardsSkipVisited(visited: Set[Board]) = immediateSubBoards.filterNot(visited)
+  def traverse: Seq[Matrix]
+  def centerBoard: Matrix
+  def immediateSubBoards: Seq[Matrix]
+  def legalImmediateSubBoards: Seq[Matrix] = immediateSubBoards.filter(_.isValid)
+  def subBoardsSkipVisited(visited: Set[Matrix]): Seq[Matrix] = legalImmediateSubBoards.filterNot(visited)
 }
 
-case object EmptyBoard extends Board { 
+case object EmptyMatrix extends Matrix {
+  override val isValid = false
   override val isSquare = true
   override val isX = false
-  override val centerBoard = EmptyBoard
-  override val traverse = Stream.empty
-  override val immediateSubBoards = Stream.empty
+  override val centerBoard = EmptyMatrix
+  override val traverse = Nil
+  override val immediateSubBoards = Vector.empty
 }
 
-case class OneSquareBoard(matrix: Vector[Vector[Int]], position: Position) extends Board { 
-  val value = matrix(position.x)(position.y)
+abstract class BaseMatrix(matrix: Vector[Vector[Int]]) {
+  this: Matrix =>
+  def valueAt(p: Position): Option[Int] = try {
+    Some(matrix(p.y)(p.x))
+  } catch {
+    case _: Exception => None
+  }
+
+}
+
+case class SingleElementMatrix(matrix: Vector[Vector[Int]], position: Position) extends BaseMatrix(matrix) with Matrix {
+  override def isValid = valueAt(position).isDefined
   override val isSquare = true
-  override val isX = value == 1
-  override val centerBoard = EmptyBoard
-  override val traverse = Stream.empty
-  override val immediateSubBoards = Stream.empty
+  override val isX = valueAt(position) == Some(1)
+  override val centerBoard = EmptyMatrix
+  override val traverse = Nil
+  override val immediateSubBoards = Vector.empty
 }
 
-case class SquareBoard(matrix: Vector[Vector[Int]], upperLeft: Position, size: Int) extends 
-    LargeBoard(matrix, upperLeft, size, size){ 
+case class SquareMatrix(matrix: Vector[Vector[Int]], upperLeft: Position, size: Int) extends LargeBoard(matrix, upperLeft, size, size) {
+  override def isValid = (upperLeft.y + size) < matrix.length
   override val isSquare = true
-  override def centerBoard = Board(matrix, upperLeft + Position(1, 1), size - 2, size - 2)
-  override def isX = corners.forall(_ == 1) && centerBoard.isX
+  override def centerBoard = Matrix(matrix, upperLeft + Position(1, 1), size - 2, size - 2)
+  override def isX = corners.forall(_ == Some(1)) && centerBoard.isX
 }
 
-case class NonSquareBoard(matrix: Vector[Vector[Int]], upperLeft: Position, width: Int, height: Int) extends
-LargeBoard(matrix, upperLeft, width, height) {
+case class NonSquareBoard(matrix: Vector[Vector[Int]], upperLeft: Position, override val width: Int, override val height: Int) extends LargeBoard(matrix, upperLeft, width, height) {
+  override def isValid = (upperLeft.y + height) <= matrix.length && (upperLeft.x + width) <= matrix.head.length
   override val isSquare = false
   override val isX = false
-  override def centerBoard = Board(matrix, upperLeft + Position(1, 1), width - 2, height - 2)
+  override def centerBoard = Matrix(matrix, upperLeft + Position(1, 1), width - 2, height - 2)
 }
 
-abstract class LargeBoard(matrix: Vector[Vector[Int]], 
-    upperLeft: Position, 
-    width: Int, 
-    height: Int) extends Board {
+abstract class LargeBoard(matrix: Vector[Vector[Int]],
+  upperLeft: Position,
+  val width: Int,
+  val height: Int) extends BaseMatrix(matrix) with Matrix {
   def bottomRight = Position(upperLeft.x + width - 1, upperLeft.y + height - 1)
   def upperRight = Position(bottomRight.x, upperLeft.y)
   def bottomLeft = Position(upperLeft.x, bottomRight.y)
 
   def corners = Vector(upperLeft, upperRight, bottomLeft, bottomRight).map(valueAt _)
 
-  def valueAt(p: Position): Option[Int] = try { 
-    Some(matrix(p.x)(p.y))
-  } catch { 
-    case _: Exception => None
-  }
-  
-  def subBoard(newUpperLeft: Position, w: Int, h: Int) = Board(matrix, newUpperLeft, w, h)
+  def subBoard(newUpperLeft: Position, w: Int, h: Int) =
+    Matrix(matrix, newUpperLeft, w, h)
 
-  def immediateSubBoards: Stream[Board] = (subBoard(upperLeft, width - 1, height) #::
-    subBoard(upperLeft, width, height - 1) #::
-    subBoard(upperLeft + Position(1, 0), width - 1, height) #::
-    subBoard(upperLeft + Position(0, 1), width, height - 1) #:: Stream.empty[Board])
+  def immediateSubBoards: Vector[Matrix] =
+    Vector(subBoard(upperLeft, width - 1, height),
+      subBoard(upperLeft, width, height - 1),
+      subBoard(upperLeft + Position(1, 0), width - 1, height),
+      subBoard(upperLeft + Position(0, 1), width, height - 1)) ~ println
 
-  def traverse: Stream[Board] = {
-    def from(initial: Stream[Board], explored: Set[Board]): Stream[Board] = {
-      val (nextInitial, nextExplored) = initial.foldLeft((Stream.empty[Board], explored)) {
+  def legalSubBoards = immediateSubBoards.filter(_.isValid)
+
+  def traverse: Vector[Matrix] = {
+    def from(initial: Vector[Matrix], explored: Set[Matrix]): Vector[Matrix] = {
+      val (nextInitial, nextExplored) = initial.foldLeft((Vector[Matrix](), explored)) {
         case ((acc, exploredPlus), e) =>
           println(exploredPlus)
           println(e)
           println("---------------------------")
-          (acc #::: (e.immediateSubBoards.filterNot(exploredPlus)), exploredPlus + e)
+          (acc ++ (e.immediateSubBoards.filterNot(exploredPlus)), exploredPlus + e)
       }
-      initial #::: from(nextInitial, nextExplored)
+      initial ++ from(nextInitial, nextExplored)
     }
-    from(Stream(this), Set())
+    from(Vector(this), Set())
   }
 }
 
-object Board {
-  def apply(board: Vector[Vector[Int]], start: Position, width: Int, height: Int): Board = 
-    if (width == 0 || height == 0) EmptyBoard
-    else if (width == 1 && height == 1) OneSquareBoard(board, start)
-    else if (width == height) SquareBoard(board, start, width)
-    else NonSquareBoard(board, start, width, height)
-    
-  def apply(board: Seq[Seq[Int]]): Board = {
+object Matrix {
+  implicit class AnyWithSideEffects[T](val v: T) extends AnyVal {
+    def ~(f: T => Unit): T = {
+      f(v)
+      v
+    }
+  }
+  
+  def apply(board: Vector[Vector[Int]], start: Position, width: Int, height: Int): Matrix =
+    (if (width == 0 || height == 0) EmptyMatrix
+    else if (width == 1 && height == 1) SingleElementMatrix(board, start)
+    else if (width == height) SquareMatrix(board, start, width)
+    else NonSquareBoard(board, start, width, height))
+
+  def apply(board: Seq[Seq[Int]]): Matrix = {
     val v = board.map(_.toVector).toVector
     val width = v.headOption.map(_.length).getOrElse(0)
     val height = if (width == 0) 0 else v.length
-    Board(board = v,
-      start = Position(0, 0),
-      width = width,
-      height = height)
+    Matrix(board = v, start = Position(0, 0), width = width, height = height)
   }
 }
