@@ -15,10 +15,10 @@ class StringPairsTest extends FunSpec with GivenWhenThen with Matchers with Prop
 
   describe("Adjacent Pairs") {
     it("should detect adjacent pairs") {
-      given("the example")
-      when("adjacent pairs are found")
+      Given("the example")
+      When("adjacent pairs are found")
       val adj = adjacentPairs(provided)
-      then("it should find one adjacent pair of 'dzone'")
+      Then("it should find one adjacent pair of 'dzone'")
       adj should equal(Seq("dzone"))
     }
     it("should never find adjacent pairs in one-word lists") {
