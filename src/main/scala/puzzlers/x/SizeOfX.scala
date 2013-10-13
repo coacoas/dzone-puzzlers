@@ -80,7 +80,7 @@ abstract class LargeMatrix(matrix: Vector[Vector[Int]],
     def from(initial: Stream[Matrix], explored: Set[Matrix]): Stream[Matrix] = initial match { 
       case m #:: xs => {
         val subs = m.subMatricesSkipVisited(explored)
-        m #:: from(xs #::: subs.toStream, explored ++ subs)
+        m #:: from(xs #::: subs, explored ++ subs)
       }
       case _ => Stream.empty
     }
