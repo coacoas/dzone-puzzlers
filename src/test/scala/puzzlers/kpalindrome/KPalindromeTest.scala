@@ -75,4 +75,10 @@ class KPalindromeTest extends FunSuite with Matchers with PropertyChecks {
       isKPalindrome(2)(s) should be (true)
     }
   }
+  
+  test("All strings are at least an n-palindrome where n = string length / 2") { 
+    forAll{ (s: String) => 
+      isKPalindrome(s.length/2)(s) should be (true)
+    }
+  }
 }
