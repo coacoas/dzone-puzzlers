@@ -14,11 +14,14 @@ import org.scalatest.prop.PropertyChecks
 import org.scalatest.FunSuite
 import org.scalatest.Matchers
 import org.scalacheck.Gen
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
 /**
  * @author bcarlson
  *
  */
+@RunWith(classOf[JUnitRunner])
 class KPalindromeTest extends FunSuite with Matchers with PropertyChecks {
   import KPalindrome._
   val positiveK = Gen.choose(0, 10)
