@@ -9,3 +9,6 @@
 *.iml
 *.ipr
 *.iws
+
+# Scala worksheets
+*.sc
