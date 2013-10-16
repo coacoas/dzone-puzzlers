@@ -66,16 +66,26 @@ class KPalindromeTest extends FunSuite with Matchers with PropertyChecks {
     }
   }
 
-  test("2-Palindrome") { 
+  test("2-Palindrome positive tests") { 
     val onePalindromes = Table(("s"), 
-        ("radar"),
-        ("badar"),
-        ("radir"),
-        ("amanaplanacanalpanama"),
+        ("radum"),
+        ("badur"),
+        ("radix"),
+        ("amanaplanacana1panama"),
         ("amaqaplanacanalpaxama"),
-        ("amamaplanacanalpanama"))
+        ("amamaplanacanaldanama"))
     forAll(onePalindromes) { (s: String) =>  
       isKPalindrome(2)(s) should be (true)
+    }
+  }
+  
+  test("2-Palindrome negative tests") { 
+    val onePalindromes = Table(("s"), 
+        ("blahaplanacana1panama"),
+        ("omaqaplamacanalpaxama"),
+        ("amamapianacanaldanama"))
+    forAll(onePalindromes) { (s: String) =>  
+      isKPalindrome(2)(s) should be (false)
     }
   }
   
