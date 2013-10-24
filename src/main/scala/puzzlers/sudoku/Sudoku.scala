@@ -5,12 +5,12 @@ class Matrix(grid: Vector[Vector[Int]]) {
   def columns: Vector[Vector[Int]] = grid.transpose
   def regions(count: Int): Vector[Matrix] = {
     val grouping = math.sqrt(count).intValue
-
-    grid.grouped(grouping).flatMap { grouped =>
-      grouped.transpose.grouped(grouping).map { flipped =>
-        new Matrix(flipped.transpose)
-      }
-    }.toVector
+    
+    for { 
+      split <- grid.grouped(grouping).toVector
+      splitT = split.transpose
+      split2 <- splitT.grouped(grouping).toVector
+    } yield (new Matrix(split2.transpose))
   }
 
   def toSet = rows.foldLeft(Set[Int]())(_ ++ _)
@@ -18,14 +18,18 @@ class Matrix(grid: Vector[Vector[Int]]) {
     _ + _.length
   }
 
+  def hasSudokuProperties(s: Set[Int]) = 
+    s.size == 9 && s.sum == target
+  
   private val target = (1 to 9).sum
-  def check = rows.toSet.size == 9 &&
-    columns.toSet.size == 9 &&
-    regions(9).toSet.size == 9 &&
-    rows.forall(_.sum == target) &&
-    columns.forall(_.sum == target) &&
-    regions(9).forall(_.toSet.sum == target)
-
+  def check = {
+    val rowSets = rows.map(_.toSet)
+    val colSets = columns.map(_.toSet)
+    val regSets = regions(9).map(_.toSet)
+    
+    (rowSets ++ colSets ++ regSets).map(hasSudokuProperties).reduce(_ && _)
+  }
+  
   override def toString = (for (rows <- grid) yield rows.mkString(" ")).mkString("\n")
   
   override def equals(other: Any) = other match { 

@@ -50,29 +50,29 @@ class SudokuTest extends FunSpec with Matchers with GivenWhenThen {
   }
 
   val sum = (1 to 9).sum
-  describe("A correct Sudoku play") { 
+  describe("A correct Sudoku play") {
     val correct = new Matrix(TestData.correct)
-    Given("A correctly filled out sudoku") 
+    Given("A correctly filled out sudoku")
     Then(s"All rows should sum to ${sum}")
-    correct.rows.foreach { _.toSet.sum should equal (sum) }
+    correct.rows.foreach { _.toSet.sum should equal(sum) }
     And(s"All columns should sum to ${sum}")
-    correct.columns.foreach { _.toSet.sum should equal (sum) }
-    And(s"All regions should sum to ${sum}") 
-    correct.regions(9).foreach { _.toSet.sum should equal (sum) }
-    And("it should be valid") 
-    correct.check should be (true)
+    correct.columns.foreach { _.toSet.sum should equal(sum) }
+    And(s"All regions should sum to ${sum}")
+    correct.regions(9).foreach { _.toSet.sum should equal(sum) }
+    And("it should be valid")
+    correct.check should be(true)
   }
-  
-  describe("A Sudoku board with a row error") { 
+
+  describe("A Sudoku board with a row error") {
     val rowError = new Matrix(TestData.rowError)
     it("Should check as false") {
-      rowError.check should be (false)
+      rowError.check should be(false)
     }
   }
 }
 
 object TestData {
-  // Correct             
+  // Correct
   val correct = Vector(
     Vector(3, 5, 8, 2, 1, 6, 4, 7, 9),
     Vector(6, 7, 1, 5, 9, 4, 3, 2, 8),
@@ -96,7 +96,7 @@ object TestData {
     Vector(4, 9, 7, 1, 8, 2, 5, 3, 6),
     Vector(1, 8, 3, 7, 6, 5, 9, 4, 2))
 
-  // Columns Error       
+  // Columns Error
   val columnError = Vector(
     Vector(3, 5, 8, 2, 1, 6, 4, 7, 9),
     Vector(7, 6, 1, 5, 9, 4, 3, 2, 8),
