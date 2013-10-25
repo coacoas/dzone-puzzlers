@@ -6,11 +6,13 @@ class Matrix(grid: Vector[Vector[Int]]) {
   def regions(count: Int): Vector[Matrix] = {
     val grouping = math.sqrt(count).intValue
     
-    for { 
-      split <- grid.grouped(grouping).toVector
+    val rs = for { 
+      split <- grid.grouped(grouping)
       splitT = split.transpose
-      split2 <- splitT.grouped(grouping).toVector
+      split2 <- splitT.grouped(grouping)
     } yield (new Matrix(split2.transpose))
+    
+    rs.toVector
   }
 
   def toSet = rows.foldLeft(Set[Int]())(_ ++ _)
